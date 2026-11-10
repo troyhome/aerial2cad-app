@@ -1011,7 +1011,7 @@ function showSource(name, text, kind) {
 }
 
 async function getData() {
-  failedReqs = [];
+  failedReqs = []; following = false;
   if (busy || !py) return;
   let p;
   try { p = JSON.parse(callPy("parse_place", $("place").value)); }
@@ -3627,6 +3627,7 @@ async function geocode(q) {
   return out;
 }
 function pick(lat, lon, name, width_ft, recenter = true) {
+  following = false;
   $("place").value = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
   $("results").hidden = true;
   $("placename").hidden = !name; $("placename").textContent = name || "";
@@ -3661,10 +3662,20 @@ function previewBox(lat, lon, recenter) {
   }
   setMarker(lat, lon); drawBox(corners, recenter);
 }
+// no site picked yet: the box sits in the middle of the map and moves with it, so there is
+// always a box to see; a click on the map, a search or typing in the box fixes it
+let following = false;
+function followMap() {
+  if (!map) return;
+  following = true;
+  const go = () => { if (!following) return; const c = map.getCenter(); $("place").value = `${c.lat.toFixed(6)}, ${c.lng.toFixed(6)}`; previewBox(c.lat, c.lng, false); };
+  map.on("move", go); go();
+  status("The pink box is the site: drag the map to move it, or click a spot, search or paste a Google Maps link. Then Get data and draw.");
+}
 function currentCenter() { const c = parseCoords($("place").value); return c && [c.lat, c.lon]; }
 $("find").onclick = find;
 $("place").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); find(); } });
-$("place").addEventListener("input", () => { $("placename").hidden = true; });
+$("place").addEventListener("input", () => { $("placename").hidden = true; following = false; });
 // ---------------------------------------------------------------- site size: scrub, ratio lock, live box
 let ratio = null, boxFrame = 0;
 const LINK_ON = "M9 17H7a5 5 0 0 1 0-10h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8";
@@ -3725,7 +3736,7 @@ syncSliders();
 const last = store.get("last");
 if (last) { $("place").value = last.place || ""; $("w").value = last.w || 1450; $("h").value = last.h || 700; }
 initMap();
-{ const c = currentCenter(); if (c) previewBox(c[0], c[1], true); }
+{ const c = currentCenter(); if (c) previewBox(c[0], c[1], true); else followMap(); }
 boot();
 </script>
 </body>
