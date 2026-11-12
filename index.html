@@ -176,7 +176,7 @@ select { font-family: var(--font-body); }
 .dlrow #pdf, .dlrow #png { min-height: 44px; border-radius: 8px; font-weight: 600; padding: 0 12px; }
 #dxf { min-height: 44px; font-size: 14px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 #dxf svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.dock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.dock { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .dock button { display: flex; flex-direction: column; align-items: center; gap: 3px; border: none; background: none; padding: 6px 2px; min-height: 0; font-size: 11px; color: var(--muted); border-radius: 6px; position: relative; }
 .dock button svg { width: 19px; height: 19px; }
 .dock button[aria-pressed=true] { background: var(--accent-soft); color: var(--accent); }
@@ -352,7 +352,20 @@ details.mini > summary { cursor: pointer; font-size: 12px; color: var(--muted); 
 #lp-list .nm small { color: var(--muted); margin-left: 6px; }
 #lp-list .tm { font: 11.5px var(--font-mono); color: var(--muted); text-align: right; }
 #lp-list li.bad .tm { color: var(--bad); }
+#lp-list .skipb { min-height: 22px; padding: 1px 8px; font-size: 11.5px; margin-left: 8px; }
 .loadpanel .lp-note { font-size: 12.5px; color: var(--warn); margin: 0; }
+.startseg { display: grid; grid-template-columns: 1fr 1fr; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 3px; }
+.startseg button { min-height: 30px; padding: 4px 6px; border: none; background: none; font-size: 12.5px; color: var(--muted); border-radius: 6px; }
+.startseg button[aria-selected=true] { background: var(--card); color: var(--fg); font-weight: 600; box-shadow: var(--shadow); }
+.thumbcard { display: flex; align-items: center; gap: 10px; padding: 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.thumbcard img { width: 72px; height: 54px; object-fit: cover; border-radius: 4px; flex: none; background: var(--line); }
+.thumbcard > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; }
+.thumbcard b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thumbcard .ghost { width: 28px; height: 28px; min-height: 28px; padding: 0; display: grid; place-items: center; flex: none; }
+#shot-pick { display: flex; align-items: center; justify-content: center; gap: 8px; }
+#shot-h { margin-left: 4px; }
+.ownrow { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
+.ownrow button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 32px; font-size: 12.5px; }
 .srcrow { display: flex; align-items: center; gap: 10px; }
 #src-retry { min-height: 0; padding: 2px 8px; font-size: 12px; }
 #found-as { width: auto; min-height: 32px; padding: 4px 6px; font-size: 12.5px; }
@@ -430,6 +443,21 @@ details.mini > summary { cursor: pointer; font-size: 12px; color: var(--muted); 
     <section class="card" id="sitecard">
       <h2><span class="num" id="num-site">1</span>Site<button class="linkbtn" id="site-change" hidden>Change</button></h2>
       <div id="site-edit" class="group">
+        <div class="startseg" role="tablist" aria-label="How to start">
+          <button role="tab" id="mode-place" aria-selected="true">Find a place</button>
+          <button role="tab" id="mode-shot" aria-selected="false">Use a screenshot</button>
+        </div>
+        <div id="shot-edit" class="group" hidden>
+          <p class="hint">Trace a satellite screenshot or an aerial picture without map data. Nothing is downloaded and the picture stays on this computer.</p>
+          <button id="shot-pick"><svg class="i"><use href="#i-photo"/></svg>Choose a picture...</button>
+          <input type="file" id="shot-file" accept="image/*" hidden>
+          <div class="thumbcard" id="shot-thumb" hidden><img id="shot-img" alt="Your picture"><div><b id="shot-name"></b><span class="hint" id="shot-px"></span></div></div>
+          <label for="shot_w" class="hint">How wide is the picture in real life?</label>
+          <div class="size"><input type="number" id="shot_w" min="20" max="20000" step="10" value="600" aria-label="Picture width in feet"><span class="unit">ft wide</span><span class="hint" id="shot-h"></span></div>
+          <p class="hint">To measure it: in Google Maps, right-click one edge of the screenshot's area, choose Measure distance, and click the other edge.</p>
+          <button class="primary" id="shot-go" disabled>Start tracing</button>
+        </div>
+        <div id="place-edit" class="group">
         <label for="place" class="hint">Address, Google Maps link, or lat, lon</label>
         <div class="find">
           <input type="text" id="place" placeholder="e.g. 1100 E Monroe St, South Bend" autocomplete="off">
@@ -445,6 +473,7 @@ details.mini > summary { cursor: pointer; font-size: 12px; color: var(--muted); 
         </div>
         <button class="primary" id="go" disabled>Get data and draw</button>
         <p class="hint">Find shows the site box on the map. You can also click the map to set the center.</p>
+        </div>
       </div>
       <div id="site-done" class="sitesum" hidden>
         <span class="place" id="site-place"></span>
@@ -452,6 +481,12 @@ details.mini > summary { cursor: pointer; font-size: 12px; color: var(--muted); 
         <span class="srcrow"><button class="srcbtn" id="srcbtn" aria-expanded="false"></button><button id="src-retry" hidden title="Download the sources that didn't answer again">Try again</button></span>
       </div>
       <ul id="sources" hidden></ul>
+      <div class="ownrow" id="ownrow">
+        <div class="thumbcard" id="own-thumb" hidden><img id="own-img" alt="Your photo"><div><b id="own-name"></b><span class="hint" id="own-note"></span></div><button class="ghost" id="own-x" title="Don't use this photo" aria-label="Remove the photo"><svg class="i"><use href="#i-x"/></svg></button></div>
+        <button id="ownphoto" disabled title="Use your own aerial picture, for example a satellite screenshot, instead of the downloaded photo. It stays on this computer. After you pick it, line it up on the drawing: drag to move, scroll to resize, then Done."><svg class="i"><use href="#i-photo"/></svg>Use my own photo...</button>
+        <button id="photoback" hidden title="Stop using your photo for this site and download the aerial photo again">Back to the downloaded photo</button>
+        <input type="file" id="ownphoto-file" accept="image/*" hidden>
+      </div>
     </section>
 
     <section class="card" id="layercard">
@@ -459,6 +494,7 @@ details.mini > summary { cursor: pointer; font-size: 12px; color: var(--muted); 
       <div class="layers">
         <div class="lay"><label class="pick" title="Select and draw on any layer. New shapes are buildings."><input type="radio" name="editlayer" value="" checked><span class="sw all"></span>All layers</label></div>
         <div class="lay"><label class="pick" title="Edit buildings only"><input type="radio" name="editlayer" value="A-BLDG"><span class="sw" style="border-color:var(--bldg)"></span>Buildings<span class="n" id="n-A-BLDG"></span></label><label class="eye" title="In the DXF (click to leave it out)"><input type="checkbox" data-layer="A-BLDG" checked aria-label="Buildings in the DXF"><svg class="i on"><use href="#i-eye"/></svg><svg class="i off"><use href="#i-eyeoff"/></svg></label></div>
+        <label class="poche" title="The building footprints exactly as the map data has them, before cleanup. Preview only."><input type="checkbox" id="show_src"> Source footprints <span class="hint" id="n-SRC"></span></label>
         <label class="poche" title="Fill the buildings with a solid color. In the DXF the fill is a solid hatch on its own layer, A-BLDG-POCH, so it can be turned off in Revit."><input type="checkbox" id="poche"> Solid fill (poche) <input type="color" id="poche_color" value="#000000" aria-label="Poche color"></label>
         <div class="lay"><label class="pick" title="Edit roads only"><input type="radio" name="editlayer" value="C-ROAD"><span class="sw" style="border-color:var(--road)"></span>Roads<span class="n" id="n-C-ROAD"></span></label><label class="eye" title="In the DXF (click to leave it out)"><input type="checkbox" data-layer="C-ROAD" checked aria-label="Roads in the DXF"><svg class="i on"><use href="#i-eye"/></svg><svg class="i off"><use href="#i-eyeoff"/></svg></label></div>
         <div class="lay"><label class="pick" title="Edit sidewalks only"><input type="radio" name="editlayer" value="C-WALK"><span class="sw" style="border-color:var(--walk)"></span>Sidewalks<span class="n" id="n-C-WALK"></span></label><label class="eye" title="In the DXF (click to leave it out)"><input type="checkbox" data-layer="C-WALK" checked aria-label="Sidewalks in the DXF"><svg class="i on"><use href="#i-eye"/></svg><svg class="i off"><use href="#i-eyeoff"/></svg></label></div>
@@ -495,21 +531,6 @@ details.mini > summary { cursor: pointer; font-size: 12px; color: var(--muted); 
     <p class="hint">Newest at the top. Click a step to go back to it. Ctrl+Z undoes, Ctrl+Shift+Z redoes.</p>
     <div id="histbox"><ul id="histlist"></ul></div>
     <p class="hint" id="hist-empty">Nothing yet. Your changes to the drawing show up here.</p>
-  </div>
-
-  <!-- Photo -->
-  <div class="pane" id="pane-photo" hidden>
-    <div class="panelhead"><button class="ghost" data-close aria-label="Back"><svg class="i"><use href="#i-back"/></svg></button><h2>Photo</h2></div>
-    <div class="card">
-      <p class="hint">The aerial photo is downloaded with the site data. You can use your own picture instead, for example a satellite screenshot. It stays on this computer.</p>
-      <button id="ownphoto" disabled title="Use your own aerial picture. It stays on this computer.">Use my own photo...</button>
-      <button id="photoback" hidden title="Stop using your photo for this site and download the aerial photo again">Back to the downloaded photo</button>
-      <input type="file" id="ownphoto-file" accept="image/*" hidden>
-      <p class="hint">After you pick it, line it up on the drawing: drag to move, scroll to resize, then Done.</p>
-    </div>
-    <div class="card">
-      <label class="row" style="gap:8px" title="The building footprints exactly as the map data has them, before cleanup. Preview only."><input type="checkbox" id="show_src"> Show source footprints (before cleanup) <span class="hint" id="n-SRC"></span></label>
-    </div>
   </div>
 
   <!-- Settings -->
@@ -550,6 +571,7 @@ details.mini > summary { cursor: pointer; font-size: 12px; color: var(--muted); 
       <div class="slider"><label for="walk_width">Sidewalk width</label><output id="walk_width-o"></output>
         <input type="range" id="walk_width" min="3" max="12" step="0.5" value="5"></div>
       <div class="checks"><label><input type="checkbox" id="find_walks"> Find unmapped sidewalks in the photo (experimental)</label></div>
+      <div class="checks"><label title="OpenStreetMap's public servers are often busy and slow. Off: they are not asked, and the drawing has no OpenStreetMap sidewalks, parking or alleys."><input type="checkbox" id="use_osm"> Get OpenStreetMap data (sidewalks, parking, alleys)</label></div>
     </div>
     <div class="card group">
       <h3 style="margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">DXF</h3>
@@ -611,7 +633,6 @@ details.mini > summary { cursor: pointer; font-size: 12px; color: var(--muted); 
     <div class="dlrow"><button class="primary" id="dxf" disabled><svg><use href="#i-dl"/></svg>Download DXF</button><button id="pdf" disabled title="A sheet with the drawing, legend, scale bar and north arrow, as a PDF. Page size and scale are in Settings.">PDF</button><button id="png" disabled title="The same sheet as a picture (PNG)">PNG</button></div>
     <div class="dock" role="toolbar" aria-label="Panels">
       <button data-pane="history" aria-pressed="false" title="History: every change, undo and redo"><svg class="i"><use href="#i-hist"/></svg>History</button>
-      <button data-pane="photo" aria-pressed="false" title="Photo: use your own aerial picture"><svg class="i"><use href="#i-photo"/></svg>Photo</button>
       <button data-pane="settings" aria-pressed="false" title="Settings: building cleanup, roads, DXF coordinates"><svg class="i"><use href="#i-sliders"/></svg>Settings</button>
       <button data-pane="files" aria-pressed="false" title="Files: save and load edits, reset, run log"><svg class="i"><use href="#i-file"/></svg>Files</button>
     </div>
@@ -849,7 +870,7 @@ async function boot() {
     for (const [name, src] of Object.entries(PYFILES)) if (name.endsWith(".py")) py.FS.writeFile("/app/" + name, src);
     await py.runPythonAsync("import sys\nsys.path.insert(0, '/app')\nimport webapp");
     status("Ready. Pick a site.");
-    $("go").disabled = false; $("ownphoto").disabled = false;
+    $("go").disabled = false; $("ownphoto").disabled = false; syncShot();
   } catch (e) {
     status("The drawing engine did not load. Check the internet connection and reload.", "bad");
     log(String(e));
@@ -887,19 +908,26 @@ async function fetchArcgis(req) {
   py.FS.writeFile("/site/data/" + req.file, JSON.stringify({ type: "FeatureCollection", crs_epsg: req.epsg || 2965, features: feats }));
   return `${feats.length} features`;
 }
+let osmSkip = null;            // the Skip button on the OpenStreetMap line
 async function fetchOverpass(req) {
-  let last = null;
+  let last = null, skipped = false;
+  const skipAC = new AbortController();
+  osmSkip = () => { skipped = true; skipAC.abort(); };
   for (const [i, url] of req.urls.entries()) {
+    if (skipped) break;
     loadDetail(req.name, i ? `server ${i + 1} of ${req.urls.length}` : "");
     try {
-      const ac = new AbortController(); const timer = setTimeout(() => ac.abort(), 90000);
+      const ac = new AbortController(); const timer = setTimeout(() => ac.abort(), 45000);
+      skipAC.signal.addEventListener("abort", () => ac.abort());
       const r = await fetch(url, { method: "POST", body: new URLSearchParams(req.form), signal: ac.signal }).finally(() => clearTimeout(timer));
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const txt = await r.text(); const js = JSON.parse(txt);
       py.FS.writeFile("/site/data/" + req.file, txt);
       return `${(js.elements || []).length} features`;
-    } catch (e) { last = e; log(`osm: ${new URL(url).host}: ${e.name === "AbortError" ? "timed out" : e.message || e}`); }
+    } catch (e) { last = e; if (!skipped) log(`osm: ${new URL(url).host}: ${e.name === "AbortError" ? "timed out" : e.message || e}`); }
   }
+  osmSkip = null;
+  if (skipped) { const e = new Error("skipped"); e.skipped = true; throw e; }
   throw last;
 }
 async function fetchImage(req) {
@@ -943,12 +971,13 @@ function loadRow(name, label, what) {
   const li = document.createElement("li"); li.className = "wait";
   li.innerHTML = `<span class="st"></span><span class="nm"></span><span class="tm"></span>`;
   li.querySelector(".nm").textContent = label; if (what) { const sm = document.createElement("small"); sm.textContent = what; li.querySelector(".nm").append(sm); }
-  $("lp-list").append(li); loadRows[name] = { li, state: "wait", t0: 0, t1: 0, text: "", detail: "" };
+  $("lp-list").append(li); loadRows[name] = { name, li, state: "wait", t0: 0, t1: 0, text: "", detail: "" };
 }
 function loadStep(name, state, text) {
   const r = loadRows[name]; if (!r) return;
   if (state === "run" && r.state !== "run") { r.t0 = performance.now(); r.t1 = 0; }
   if ((state === "ok" || state === "bad" || state === "skip") && !r.t1) r.t1 = performance.now();
+  if (state === "skip" && !r.t0) r.t0 = r.t1;       // never started: no time to show
   r.state = state; if (text !== undefined) r.text = text; loadPaint();
 }
 function loadDetail(name, d) { const r = loadRows[name]; if (r) { r.detail = d; loadPaint(); } }
@@ -959,8 +988,16 @@ function loadPaint() {
   for (const r of rows) {
     r.li.className = r.state === "skip" ? "wait" : r.state;
     r.li.querySelector(".st").innerHTML = r.state === "run" ? '<span class="spin"></span>' : r.state === "ok" ? ic("i-check") : r.state === "bad" ? ic("i-x") : "";
-    const t = r.state === "run" ? sec(now - r.t0) : r.t1 ? sec(r.t1 - r.t0) : "";
+    const t = r.state === "run" ? sec(now - r.t0) : r.t1 && r.t1 > r.t0 ? sec(r.t1 - r.t0) : "";
     r.li.querySelector(".tm").textContent = r.state === "run" ? [r.detail, t].filter(Boolean).join(" · ") : [r.text, t].filter(Boolean).join(" · ");
+    if (r.name === "osm") {          // OpenStreetMap is often slow: it can be skipped
+      let b = r.li.querySelector(".skipb");
+      if (r.state === "run" && !b) {
+        b = document.createElement("button"); b.className = "skipb"; b.textContent = "Skip"; b.title = "Stop waiting for OpenStreetMap and draw without it";
+        b.onclick = () => { if (osmSkip) osmSkip(); b.remove(); };
+        r.li.querySelector(".tm").after(b); r.li.style.gridTemplateColumns = "18px 1fr auto auto";
+      } else if (r.state !== "run" && b) { b.remove(); r.li.style.gridTemplateColumns = ""; }
+    }
   }
   const done = rows.filter(r => r.state === "ok" || r.state === "bad" || r.state === "skip").length;
   $("lp-bar").style.width = `${Math.max(2, 100 * done / rows.length)}%`;
@@ -982,6 +1019,10 @@ async function runRequest(req, plan) {
     const t = req.kind === "arcgis" ? await fetchArcgis(req) : req.kind === "overpass" ? await fetchOverpass(req) : await fetchImage(req);
     showSource(req.name, t, "ok"); loadStep(req.name, "ok", t.replace(/ features$/, ""));
   } catch (e) {
+    if (e.skipped) {
+      showSource(req.name, "skipped"); loadStep(req.name, "skip", "skipped"); log(`${req.name}: skipped`);
+      return;
+    }
     const backup = req.name === "buildings_state" || (req.name === "buildings_usa" && plan.in_indiana);
     const why = e.name === "AbortError" ? "timed out" : (/HTTP \d+/.exec(e.message || "") || [""])[0];
     showSource(req.name, (backup ? "not reached (backup only)" : "not reached") + (why && !backup ? ` (${why})` : ""), backup ? "" : "bad");
@@ -1029,7 +1070,10 @@ async function getData() {
     const mine = ownPhoto && ownPhoto.key === siteKey(site.lat, site.lon);
     if (startFile || mine) plan.requests = plan.requests.filter(r => r.name !== "imagery");
     if (mine && !startFile) { writeOwnPhoto(); showSource("imagery", "your photo", "ok"); }
+    const noOsm = !$("use_osm").checked && plan.requests.some(r => r.name === "osm");
+    if (noOsm) plan.requests = plan.requests.filter(r => r.name !== "osm");
     loadStart(plan.requests);
+    if (noOsm) { loadRow("osm", LABEL.osm, FOR.osm); loadStep("osm", "skip", "off in Settings"); showSource("osm", "off (Settings)"); $("lp-list").append(loadRows.draw.li); }
     await Promise.all(plan.requests.map(req => runRequest(req, plan)));
     if (photoFailed && ownPhoto && ownPhoto.key === siteKey(site.lat, site.lon)) { writeOwnPhoto(); photoFailed = false; }
     edits = loadSavedEdits(site.lat, site.lon); pendingChanged(); resetHistory();
@@ -1053,6 +1097,7 @@ function update() {
   if (tool === "sel") commitEdit();
   applyPending();
   // a different site or size needs fresh data; anything else is just a redraw
+  if (site && site.shot) return draw();
   if (!site || $("place").value !== site.place || +$("w").value !== site.width_ft || +$("h").value !== site.height_ft) return getData();
   return draw();
 }
@@ -1320,7 +1365,7 @@ function zoomTo(ring) {
   vb = [x0 - pad, y0 - pad, x1 - x0 + 2 * pad, y1 - y0 + 2 * pad]; render(false);
 }
 function showReview() {
-  $("review").hidden = !result;
+  $("review").hidden = !result || !(result.checks || []).some(c => c.score !== null);
   if (!result) return;
   const flags = openFlags(), checked = (result.checks || []).filter(c => c.score !== null).length;
   $("review-sum").textContent = !result.imagery ? "No photo, so outlines can't be checked against it."
@@ -2735,7 +2780,7 @@ document.querySelectorAll("details.sec").forEach(d => {
 function updateSummaries() {
   const src = [...document.querySelectorAll("#sources li .s")];
   const ok = src.filter(x => x.classList.contains("ok")).length, bad = src.filter(x => x.classList.contains("bad")).length;
-  $("srcbtn").hidden = !src.length;
+  $("srcbtn").hidden = !src.length || !!(site && site.shot);
   $("srcbtn").textContent = bad ? `${bad} of ${src.length} sources failed` : `${ok} of ${src.length} data sources`;
   $("srcbtn").classList.toggle("warn", bad > 0);
   $("src-retry").hidden = !bad || busy;
@@ -2764,8 +2809,8 @@ function placeAlign() {
 }
 async function startOwnPhoto(file) {
   if (!result) {        // picked before drawing: used instead of downloading a photo
-    startFile = file; $("ownphoto").textContent = `Own photo: ${file.name}`;
-    status("Your photo will be used. Click Get data and draw, then line it up."); return;
+    startFile = file; showOwnThumb(file, "Used when you press Get data and draw. You line it up on the drawing after.");
+    status("Your photo will be used. Press Get data and draw, then line it up."); return;
   }
   let bmp;
   try { bmp = await createImageBitmap(file); } catch { status("That file isn't a picture this browser can open.", "bad"); return; }
@@ -2801,7 +2846,7 @@ async function finishAlign() {
                meta: { box: [gx0, gy1 - H * fpp, gx0 + W * fpp, gy1], width: W, height: H, ft_per_px: fpp, source: "your photo" } };
   writeOwnPhoto();
   endAlign();
-  showSource("imagery", `your photo, ${W} x ${H} px`, "ok"); $("ownphoto").textContent = "Use my own photo...";
+  showSource("imagery", `your photo, ${W} x ${H} px`, "ok"); showOwnThumb(null, "In use for this site: the photo check and Find in photo use it.");
   $("photoback").hidden = false;
   await draw();
   status("Using your photo. The photo check and the scan tools work with it now.");
@@ -2814,7 +2859,79 @@ function writeOwnPhoto() {
   photoURL = URL.createObjectURL(new Blob([ownPhoto.buf], { type: "image/jpeg" }));
 }
 $("ownphoto").onclick = () => $("ownphoto-file").click();
-$("photoback").onclick = () => { ownPhoto = null; $("photoback").hidden = true; getData(); };
+$("photoback").onclick = () => { ownPhoto = null; $("photoback").hidden = true; $("own-thumb").hidden = true; getData(); };
+let ownThumbURL = null;
+function showOwnThumb(file, note) {
+  // the photo you picked, small, in the Site card: you can see it is loaded
+  if (file) { if (ownThumbURL) URL.revokeObjectURL(ownThumbURL); ownThumbURL = URL.createObjectURL(file); $("own-img").src = ownThumbURL; $("own-name").textContent = file.name; }
+  $("own-note").textContent = note; $("own-thumb").hidden = false;
+  $("ownphoto").lastChild.textContent = "Use a different photo...";
+  $("own-x").hidden = !!result && !startFile && !!ownPhoto && false;
+}
+$("own-x").onclick = () => {
+  if (startFile) { startFile = null; $("own-thumb").hidden = true; $("ownphoto").lastChild.textContent = "Use my own photo..."; status("Photo removed. The aerial photo will be downloaded."); return; }
+  if (ownPhoto) $("photoback").click();
+};
+// ---- start from a screenshot: no map data, the picture is the site
+let shotFile = null, shotSize = null;
+function setStartMode(m) {
+  $("mode-place").setAttribute("aria-selected", m === "place"); $("mode-shot").setAttribute("aria-selected", m === "shot");
+  $("place-edit").hidden = m !== "place"; $("shot-edit").hidden = m !== "shot"; $("ownrow").hidden = m === "shot";
+  store.set("startmode", m);
+}
+$("mode-place").onclick = () => setStartMode("place");
+$("mode-shot").onclick = () => setStartMode("shot");
+$("shot-pick").onclick = () => $("shot-file").click();
+$("shot-file").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  let bmp; try { bmp = await createImageBitmap(f); } catch { status("That file isn't a picture this browser can open.", "bad"); return; }
+  shotFile = f; shotSize = [bmp.width, bmp.height];
+  $("shot-img").src = URL.createObjectURL(f); $("shot-name").textContent = f.name; $("shot-px").textContent = `${bmp.width} x ${bmp.height} px`;
+  $("shot-thumb").hidden = false; $("shot-pick").lastChild.textContent = "Choose a different picture...";
+  const saved = store.get("shotw:" + shotKey(f)); if (saved) $("shot_w").value = saved;
+  syncShot(); status("Picture loaded. Enter how wide it is in feet, then Start tracing.");
+};
+function syncShot() {
+  $("shot-go").disabled = !shotFile || !py || !(+$("shot_w").value > 0);
+  $("shot-h").textContent = shotSize && +$("shot_w").value > 0 ? `x ${Math.round(+$("shot_w").value * shotSize[1] / shotSize[0]).toLocaleString()} ft tall` : "";
+}
+$("shot_w").addEventListener("input", syncShot);
+function shotKey(f) { let h = 2166136261; for (const c of `${f.name}|${f.size}|${f.lastModified}`) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0; return h; }
+$("shot-go").onclick = startShot;
+async function startShot() {
+  if (busy || !py || !shotFile) return;
+  const f = shotFile, wft = +$("shot_w").value, [pw, ph] = shotSize, hft = wft * ph / pw, h = shotKey(f);
+  // each picture gets its own spot (far out in the Pacific, on a local grid), so its edits are saved apart
+  const lat = -40 + (h % 8000) / 100, lon = -170 + ((h >>> 13) % 4000) / 100;
+  store.set("shotw:" + h, wft);
+  site = { lat, lon, width_ft: Math.round(wft), height_ft: Math.round(hft), place: `Screenshot: ${f.name}`, name: `Screenshot: ${f.name}`, shot: true };
+  busy = true; $("shot-go").disabled = true; vb = null; found = []; pending = []; failedReqs = []; $("sources").innerHTML = ""; pendingChanged();
+  try {
+    status("Setting up your picture...");
+    py.runPython("import shutil\nshutil.rmtree('/site', ignore_errors=True)");
+    callPy("plan", lat, lon, site.width_ft, site.height_ft, false);
+    const box = JSON.parse(py.FS.readFile("/site/data/site.json", { encoding: "utf8" })).box;
+    const cx = (box[0] + box[2]) / 2, cy = (box[1] + box[3]) / 2;
+    // the picture as a JPEG at most 4000 px across, filling the site exactly
+    const bmp = await createImageBitmap(f), k = Math.min(1, 4000 / Math.max(pw, ph)), W = Math.round(pw * k), H = Math.round(ph * k);
+    const cv = document.createElement("canvas"); cv.width = W; cv.height = H; cv.getContext("2d").drawImage(bmp, 0, 0, W, H);
+    const buf = new Uint8Array(await (await new Promise(r => cv.toBlob(r, "image/jpeg", 0.92))).arrayBuffer());
+    py.FS.writeFile("/site/data/imagery.jpg", buf);
+    py.FS.writeFile("/site/data/imagery.json", JSON.stringify({ box: [cx - wft / 2, cy - hft / 2, cx + wft / 2, cy + hft / 2], width: W, height: H, ft_per_px: wft / W, source: "your screenshot" }));
+    if (photoURL) URL.revokeObjectURL(photoURL);
+    photoURL = URL.createObjectURL(new Blob([buf], { type: "image/jpeg" }));
+    showSource("imagery", `your picture, ${W} x ${H} px`, "ok");
+    edits = loadSavedEdits(lat, lon); pendingChanged(); resetHistory(); selFlag = null;
+    if (previewStyle !== "photo") setStyle("photo");
+    busy = false;
+    await draw();
+    if (result) {
+      siteCollapse(true); setTool("scan");
+      status("Ready to trace. Click around an area (or drag a box) to find buildings and parking, or use the drawing tools. AI check (A) looks over the whole picture.");
+    }
+  } catch (e) { status("The picture could not be set up.", "bad"); showError("The picture could not be set up.", String(e)); log(String((e && e.stack) || e)); }
+  finally { busy = false; syncShot(); }
+}
 $("ownphoto-file").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (f) startOwnPhoto(f); };
 $("align-ok").onclick = finishAlign;
 $("align-x").onclick = () => { endAlign(); status("Photo not used."); };
@@ -2929,9 +3046,11 @@ $("z-in").onclick = () => zoomBy(0.7); $("z-out").onclick = () => zoomBy(1 / 0.7
 function syncSnap() { $("snapbtn").setAttribute("aria-pressed", snapOn); }
 $("snapbtn").onclick = () => { snapOn = !snapOn; store.set("snap", snapOn); syncSnap(); status(snapOn ? "Snap on: corners and square walls." : "Snap off."); };
 snapOn = store.get("snap") !== false; syncSnap();
+$("use_osm").checked = store.get("use_osm") !== false;
+$("use_osm").addEventListener("change", () => store.set("use_osm", $("use_osm").checked));
 // the left panel: the steps, or one of History / Photo / Settings / Files
 function openPane(name) {
-  for (const id of ["steps", "history", "photo", "settings", "files"]) $("pane-" + id).hidden = id !== (name || "steps");
+  for (const id of ["steps", "history", "settings", "files"]) $("pane-" + id).hidden = id !== (name || "steps");
   document.querySelectorAll(".dock [data-pane]").forEach(b => b.setAttribute("aria-pressed", b.dataset.pane === name));
 }
 document.querySelectorAll(".dock [data-pane]").forEach(b => b.addEventListener("click", () => openPane(b.getAttribute("aria-pressed") === "true" ? null : b.dataset.pane)));
@@ -2953,6 +3072,7 @@ function syncTheme() { $("theme-ic").setAttribute("href", isDark() ? "#i-sun" : 
 $("themebtn").onclick = () => { const t = isDark() ? "light" : "dark"; document.documentElement.dataset.theme = t; store.set("theme", t); syncTheme(); if (result) render(false); };
 $("lp-retry").onclick = retryFailed; $("src-retry").onclick = retryFailed;
 $("lp-close").onclick = () => { $("loadpanel").hidden = true; };
+setStartMode(store.get("startmode") === "shot" ? "shot" : "place");
 $("srcbtn").onclick = () => { const o = $("sources").hidden; $("sources").hidden = !o; $("srcbtn").setAttribute("aria-expanded", o); };
 $("review-open").onclick = () => { const o = $("review-list").hidden; $("review-list").hidden = !o; $("review-open").setAttribute("aria-expanded", o); $("review-open").textContent = o ? "Close" : "Review"; };
 
